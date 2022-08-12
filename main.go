@@ -39,6 +39,14 @@ func ApplicationCreate(ctx context.Context, authorizer auth.Authorizer, name str
 	return app, err
 }
 
+func ApplicationDelete(ctx context.Context, authorizer auth.Authorizer, app *msgraph.Application) error {
+	// TODO need to add create if not exist logic as this will create many apps with the same display name
+	ac := msgraph.NewApplicationsClient(AzureTenantID)
+	ac.BaseClient.Authorizer = authorizer
+	_, err := ac.Delete(ctx, *app.ID)
+	return err
+}
+
 // ServicePrincipalCreate creates an azure identity for this application
 // that can be assigned access policies on azure cloud resources
 func ServicePrincipalCreate(ctx context.Context, authorizer auth.Authorizer, app *msgraph.Application) (*msgraph.ServicePrincipal, error) {
@@ -48,14 +56,28 @@ func ServicePrincipalCreate(ctx context.Context, authorizer auth.Authorizer, app
 	return sp, err
 }
 
-// ServicePrincipalCreate creates an azure identity for this application
-// that can be assigned access policies on azure cloud resources
+func ServicePrincipalDelete(ctx context.Context, authorizer auth.Authorizer, sp *msgraph.ServicePrincipal) error {
+	c := msgraph.NewServicePrincipalsClient(AzureTenantID)
+	c.BaseClient.Authorizer = authorizer
+	_, err := c.Delete(ctx, *sp.ID)
+	return err
+}
+
+// ServicePrincipalPasswordCreate creates an long lived password credential for this application
 func ServicePrincipalPasswordCreate(ctx context.Context, authorizer auth.Authorizer, sp *msgraph.ServicePrincipal) (*msgraph.PasswordCredential, error) {
 	c := msgraph.NewServicePrincipalsClient(AzureTenantID)
 	c.BaseClient.Authorizer = authorizer
 	newCredential, _, err := c.AddPassword(ctx, *sp.ID, msgraph.PasswordCredential{
+		KeyId: sp.AppId,
 	})
 	return newCredential, err
+}
+
+func ServicePrincipalPasswordDelete(ctx context.Context, authorizer auth.Authorizer, sp *msgraph.ServicePrincipal) error {
+	c := msgraph.NewServicePrincipalsClient(AzureTenantID)
+	c.BaseClient.Authorizer = authorizer
+	_, err := c.RemovePassword(ctx, *sp.ID, *sp.AppId)
+	return err
 }
 
 // AddAccessPoliciesToServicePrincipal adds the access policies
