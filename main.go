@@ -53,8 +53,7 @@ func ServicePrincipalCreate(ctx context.Context, authorizer auth.Authorizer, app
 func ServicePrincipalPasswordCreate(ctx context.Context, authorizer auth.Authorizer, sp *msgraph.ServicePrincipal) (*msgraph.PasswordCredential, error) {
 	c := msgraph.NewServicePrincipalsClient(AzureTenantID)
 	c.BaseClient.Authorizer = authorizer
-	newCredential, _, err := c.AddPassword(ctx, *sp.AppId, msgraph.PasswordCredential{
-		KeyId: sp.AppId,
+	newCredential, _, err := c.AddPassword(ctx, *sp.ID, msgraph.PasswordCredential{
 	})
 	return newCredential, err
 }
